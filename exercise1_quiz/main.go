@@ -53,26 +53,27 @@ func quiz(problems []Problem) (int, int) {
 
 	problemCounter = len(problems)
 	var problemNumber int
+        newtimer := time.NewTimer(time.Duration(timeLimit) * time.Second)
+        go func(problemCounter int, correctCounter *int) {
+                <-newtimer.C
+
+                fmt.Println("Sorry! You ran out of time!")
+                fmt.Printf("Your score: %d/%d \n", *correctCounter, problemCounter)
+                os.Exit(0)
+            }(problemCounter, &correctCounter)
+
         for _, each_problem := range problems {
 		problemNumber++
                 fmt.Printf("Problem #%v: %v= ", problemNumber, each_problem.question)
-                newtimer := time.NewTimer(time.Duration(timeLimit) * time.Second)
-                go func(problemCounter int, correctCounter int) {
-                        <-newtimer.C
-
-                        fmt.Println("Sorry! You ran out of time!")
-                        fmt.Printf("Your score: %d/%d \n", correctCounter, problemCounter)
-                        os.Exit(0)
-                    }(problemCounter, correctCounter)
                 var userAnswer string
                 fmt.Scanln(&userAnswer)
-                newtimer.Stop()
                 userAnswer = strings.TrimSpace(userAnswer)
                 if strings.ToLower(userAnswer) == strings.ToLower(each_problem.solution) {
                         correctCounter++
                 }
 
         }
+        newtimer.Stop()
 	return problemCounter, correctCounter
 }
 
@@ -95,7 +96,7 @@ func main() {
 
 	problems := readCsv()
 
-	fmt.Printf("You will have %d seconds to attempt each problem. \n Good luck!", timeLimit)
+	fmt.Printf("You will have %d seconds to attempt the quiz. \n Good luck!\n", timeLimit)
 	fmt.Print("Press 'Enter' to start the quiz...")
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
         if shuffleFlag {
